@@ -1,0 +1,24 @@
+{
+  "name": "pps-module",
+  "version": "1.0.0",
+  "description": "Express module for integrating with PT. Erajaya Swasembada (PPS) Top Up H2H API",
+  "private": true,
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.20.1",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.3"
+  }
+}
