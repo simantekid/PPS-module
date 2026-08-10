@@ -3,7 +3,7 @@ import * as ppsService from '../services/pps.service';
 import { findTopUpByIdtrx, saveTopUp } from '../services/topupStore.service';
 import { getFieldsForProduct } from '../services/gamelistCache.service';
 import { mapDirectTopUpStatus, mapStatusTrxStatus } from '../lib/statusMapper';
-import { resolveTrxType } from '../lib/trxType';
+import { resolveTrxType, stripTrxPrefix } from '../lib/trxType';
 import { IrsTopUpRequest, IrsTopUpResponse, TopUpField } from '../types/pps';
 
 // Value di `tujuan` dipisahin pake delimiter ini kalau produknya butuh lebih dari 1
@@ -81,30 +81,36 @@ export const createTrx: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    // Prefix idtrx yang nentuin ini trx pulsa/voucher (SELL) atau top up game
-    // (Direct Top Up) - lihat lib/trxType.ts (masih placeholder, nunggu konfirmasi
-    // tim IRS pola aslinya).
-    const trxType = resolveTrxType(payload.idtrx);
+    // Prefix `kode` yang nentuin ini trx pulsa/voucher (SELL) atau top up game
+    // (Direct Top Up) - lihat lib/trxType.ts. Dulu prefix ini di idtrx, tapi IRS
+    // sekarang generate idtrx full angka (gak bisa custom lagi), makanya dipindah
+    // ke kode.
+    const trxType = resolveTrxType(payload.kode);
 
     if (!trxType) {
       res.status(400).json({
         code: 'BAD_REQUEST',
         data: null,
-        message: 'idtrx harus diawali prefix yang dikenal (SELL atau TOPUP) - lihat lib/trxType.ts',
+        message: 'kode harus diawali prefix yang dikenal (SL- atau TP-) - lihat lib/trxType.ts',
       });
       return;
     }
+
+    // Product code asli buat dikirim ke PPS - prefix SL-/TP- cuma buat routing
+    // internal, PPS gak kenal itu. `payload.kode` (dengan prefix) tetep yang
+    // disimpan & di-echo balik ke IRS.
+    const kodeAsli = stripTrxPrefix(payload.kode);
 
     let vendorIdtrx: string | null;
     let status: IrsTopUpResponse['status'];
     let msg: string;
 
     if (trxType === 'sell') {
-      console.log({ produk: payload.kode, mdn: payload.tujuan, notrx: payload.idtrx }, 'Payload ke PPS SELL');
+      console.log({ produk: kodeAsli, mdn: payload.tujuan, notrx: payload.idtrx }, 'Payload ke PPS SELL');
 
       const created = await ppsService.sell({
         notrx: payload.idtrx,
-        produk: payload.kode,
+        produk: kodeAsli,
         mdn: payload.tujuan,
       });
 
@@ -117,13 +123,13 @@ export const createTrx: RequestHandler = async (req, res, next) => {
       status = mapped.status;
       msg = mapped.msg;
     } else {
-      const field = await buildTopUpField(payload.kode, payload.tujuan);
+      const field = await buildTopUpField(kodeAsli, payload.tujuan);
 
-      console.log({ product: payload.kode, notrx: payload.idtrx, field }, 'Payload ke PPS Direct Top Up');
+      console.log({ product: kodeAsli, notrx: payload.idtrx, field }, 'Payload ke PPS Direct Top Up');
 
       const created = await ppsService.directTopUp({
         notrx: payload.idtrx,
-        product: payload.kode,
+        product: kodeAsli,
         field,
       });
 

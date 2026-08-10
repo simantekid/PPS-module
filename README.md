@@ -31,10 +31,14 @@ GET /api/trx?kode=<kode>&tujuan=<tujuan>&idtrx=<idtrx>
 ```
 Alternatif: `POST /api/trx` dengan body JSON `{ "idtrx", "tujuan", "kode" }`.
 
-Satu endpoint buat 2 tipe transaksi — **prefix `idtrx` yang nentuin** ini dianggap
-SELL (pulsa/voucher) atau Direct Top Up (game), lihat `src/lib/trxType.ts`
-(placeholder sementara: `SL-` = SELL, `TP-` = TOPUP, **belum final**, nunggu
-konfirmasi pola asli dari tim IRS).
+Satu endpoint buat 2 tipe transaksi — **prefix `kode` yang nentuin** ini dianggap
+SELL (pulsa/voucher, prefix `SL-`) atau Direct Top Up (game, prefix `TP-`), lihat
+`src/lib/trxType.ts`. Prefix ini di-strip sebelum dikirim ke PPS (PPS gak kenal
+prefixnya) - `kode` yang disimpan & dibalikin ke IRS tetap versi lengkap dengan
+prefix. Contoh: `kode=SL-PLSA10` atau `kode=TP-GMLBB10`.
+
+> Sebelumnya prefix ini ada di `idtrx`, tapi IRS sekarang generate `idtrx` full
+> angka (gak bisa custom lagi), makanya dipindah ke `kode`.
 
 - **SELL**: `tujuan` = nomor tujuan (mdn), `kode` = produk/voucher code. Langsung
   dikirim apa adanya, gak ada split.
