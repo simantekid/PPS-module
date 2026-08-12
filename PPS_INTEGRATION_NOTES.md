@@ -91,7 +91,9 @@ di `azec-services-staging.erajaya.com`. (Gak dipakai di module ini, cuma buat ca
 kalau nanti Check Customer diaktifin.)
 
 ### 5. Status code beda arti tiap endpoint — JANGAN disamain
-- **Direct Top Up**: `2` = pending, `1` = gagal, `0` = sukses
+- **Direct Top Up**: aktual PPS mengirim `9` = pending jika `ServerIDTrx` terisi;
+  tabel PDF juga menulis `2` = pending, jadi keduanya diterima. `9` dengan
+  `ServerIDTrx=null` adalah error request/config. `1` = gagal, `0` = sukses.
 - **SELL**: `9` = pending/config gagal, `1` = gagal, `0` = sukses (skema sama kayak StatusTrx!)
 - **StatusTrx**: `9` = pending, `1` = gagal, `0` = sukses
 - **Callback**: cuma `0` (sukses) / `1` (gagal) — gak ada state pending di callback
@@ -100,7 +102,8 @@ Ini kenapa `statusMapper.ts` punya fungsi mapping terpisah per skema
 (`mapDirectTopUpStatus`, `mapStatusTrxStatus`, `mapCallbackStatus`), gak digabung jadi
 satu map kayak `mapOrderStatusToIrs` di LapakGaming. SELL kebetulan skemanya sama
 persis kayak StatusTrx (9/1/0), jadi `trx.controller.ts` reuse `mapStatusTrxStatus`
-buat SELL juga — cuma Direct Top Up yang beda (0/1/2).
+buat SELL juga. Direct Top Up menerima `9` atau `2` sebagai pending sesuai perbedaan
+antara response aktual dan tabel PDF.
 
 ### 6. Field dinamis via Get Gamelist (lebih rapi dari LapakGaming)
 LapakGaming: `splitTujuan` nebak manual (4 karakter terakhir `tujuan` = zone id, cuma
