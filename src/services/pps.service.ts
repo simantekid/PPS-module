@@ -48,13 +48,36 @@ export async function directTopUp(params: {
     signature: signDirectTopUp(params.product, params.notrx),
   };
 
-  console.log('[directTopUp] request ->', ppsPaths.directTopUp, payload);
+  console.log(
+    '[DIRECT TOP UP][MODULE -> PPS] REQUEST',
+    JSON.stringify(
+      {
+        method: 'POST',
+        url: `${config.pps.baseUrl}${ppsPaths.directTopUp}`,
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+      },
+      null,
+      2,
+    ),
+  );
 
-  const { data } = await ppsClient.post<DirectTopUpResponse>(ppsPaths.directTopUp, payload);
+  const response = await ppsClient.post<DirectTopUpResponse>(ppsPaths.directTopUp, payload);
 
-  console.log('[directTopUp] response ->', JSON.stringify(data, null, 2));
+  console.log(
+    '[DIRECT TOP UP][PPS -> MODULE] RESPONSE',
+    JSON.stringify(
+      {
+        httpStatus: response.status,
+        headers: response.headers,
+        body: response.data,
+      },
+      null,
+      2,
+    ),
+  );
 
-  return data;
+  return response.data;
 }
 
 export async function sell(params: { notrx: string; produk: string; mdn: string }): Promise<SellResponse> {
@@ -66,15 +89,38 @@ export async function sell(params: { notrx: string; produk: string; mdn: string 
     signature: signSell(params.mdn, params.produk, params.notrx),
   });
 
-  console.log('[sell] request ->', ppsPaths.sell, Object.fromEntries(body));
+  console.log(
+    '[SELL][MODULE -> PPS] REQUEST',
+    JSON.stringify(
+      {
+        method: 'POST',
+        url: `${config.pps.baseUrl}${ppsPaths.sell}`,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: Object.fromEntries(body),
+      },
+      null,
+      2,
+    ),
+  );
 
-  const { data } = await ppsClient.post<SellResponse>(ppsPaths.sell, body, {
+  const response = await ppsClient.post<SellResponse>(ppsPaths.sell, body, {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   });
 
-  console.log('[sell] response ->', JSON.stringify(data, null, 2));
+  console.log(
+    '[SELL][PPS -> MODULE] RESPONSE',
+    JSON.stringify(
+      {
+        httpStatus: response.status,
+        headers: response.headers,
+        body: response.data,
+      },
+      null,
+      2,
+    ),
+  );
 
-  return data;
+  return response.data;
 }
 
 export async function inquiryPln(customerNumber: string): Promise<InquiryPlnResponse> {

@@ -106,15 +106,11 @@ export const createTrx: RequestHandler = async (req, res, next) => {
     let msg: string;
 
     if (trxType === 'sell') {
-      console.log({ produk: kodeAsli, mdn: payload.tujuan, notrx: payload.idtrx }, 'Payload ke PPS SELL');
-
       const created = await ppsService.sell({
         notrx: payload.idtrx,
         produk: kodeAsli,
         mdn: payload.tujuan,
       });
-
-      console.log(created, 'Response SELL');
 
       // SELL pake skema status yang sama kayak StatusTrx (9/1/0), makanya reuse
       // mapStatusTrxStatus, BUKAN mapDirectTopUpStatus; mapper Direct Top Up juga
@@ -126,15 +122,11 @@ export const createTrx: RequestHandler = async (req, res, next) => {
     } else {
       const field = await buildTopUpField(kodeAsli, payload.tujuan);
 
-      console.log({ product: kodeAsli, notrx: payload.idtrx, field }, 'Payload ke PPS Direct Top Up');
-
       const created = await ppsService.directTopUp({
         notrx: payload.idtrx,
         product: kodeAsli,
         field,
       });
-
-      console.log(created, 'Response Direct Top Up');
 
       const mapped = mapDirectTopUpStatus(created);
       vendorIdtrx = created.ServerIDTrx;
@@ -161,6 +153,18 @@ export const createTrx: RequestHandler = async (req, res, next) => {
       sn: null,
       msg,
     };
+
+    console.log(
+      `[${trxType === 'sell' ? 'SELL' : 'DIRECT TOP UP'}][MODULE -> IRS] RESPONSE`,
+      JSON.stringify(
+        {
+          httpStatus: 200,
+          body: response,
+        },
+        null,
+        2,
+      ),
+    );
 
     res.json(response);
   } catch (err) {
