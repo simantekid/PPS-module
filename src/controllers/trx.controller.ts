@@ -117,7 +117,8 @@ export const createTrx: RequestHandler = async (req, res, next) => {
       console.log(created, 'Response SELL');
 
       // SELL pake skema status yang sama kayak StatusTrx (9/1/0), makanya reuse
-      // mapStatusTrxStatus, BUKAN mapDirectTopUpStatus (skemanya beda, 0/1/2).
+      // mapStatusTrxStatus, BUKAN mapDirectTopUpStatus; mapper Direct Top Up juga
+      // menerima status 2 sebagai pending sesuai tabel response di PDF.
       const mapped = mapStatusTrxStatus(created);
       vendorIdtrx = created.ServerIDTrx;
       status = mapped.status;

@@ -31,10 +31,9 @@ export interface DirectTopUpRequest {
   signature: string;
 }
 
-// Status Direct Top Up: 2 = pending, 1 = gagal, 0 = sukses.
-// PENTING: beda sama status StatusTrx (9 = pending), jangan disamain!
-// Status bisa juga "9" kalau error generik (wrong signature/format/IP, dll) - di luar
-// skema 0/1/2 normal, makanya tipenya `string` bukan union ketat (lihat statusMapper.ts).
+// Status Direct Top Up aktual: 9 = pending jika ServerIDTrx terisi, 1 = gagal,
+// 0 = sukses. Tabel PDF juga menulis 2 = pending, jadi mapper menerima keduanya.
+// Status 9 + ServerIDTrx null berarti error konfigurasi/request.
 export interface DirectTopUpResponse {
   Status: string;
   ServerIDTrx: string | null;
@@ -43,7 +42,8 @@ export interface DirectTopUpResponse {
 }
 
 // SELL (pulsa/voucher): status 9 = pending/config gagal, 1 = gagal, 0 = sukses.
-// Sama skemanya kayak StatusTrx (beda dari Direct Top Up yang 0/1/2) - lihat statusMapper.ts.
+// Sama skemanya kayak StatusTrx; Direct Top Up juga menerima 2 sebagai pending untuk
+// kompatibilitas dengan tabel response di PDF.
 export interface SellResponse {
   Status: string;
   ServerIDTrx: string | null;

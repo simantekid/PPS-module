@@ -1,8 +1,10 @@
 import { IrsStatus } from '../types/pps';
 
-// Direct Top Up: 2 = pending, 1 = gagal, 0 = sukses.
-const DIRECT_TOPUP_STATUS_MAP: Record<'0' | '1' | '2', IrsStatus> = {
+// Direct Top Up: tabel response PDF menulis 2 = pending, tetapi narasi endpoint dan
+// response aktual PPS memakai 9 = pending. Keduanya diterima untuk kompatibilitas.
+const DIRECT_TOPUP_STATUS_MAP: Record<'0' | '1' | '2' | '9', IrsStatus> = {
   '2': 'pending',
+  '9': 'pending',
   '1': 'gagal',
   '0': 'sukses',
 };
@@ -27,15 +29,22 @@ const DEFAULT_MSG: Record<IrsStatus, string> = {
   gagal: 'gagal',
 };
 
-// Error generik (wrong signature, wrong format, wrong IP, dll - lihat "LIST OF ERROR
-// MESSAGE" di dokumen PPS) selalu balikin Status "9" apapun endpoint-nya, di luar skema
-// status normal Direct Top Up (0/1/2). Kalau kode status gak dikenal, treat sebagai
-// gagal daripada crash pas nyimpen ke db.
-export function mapDirectTopUpStatus(raw: { Status: string; Message: string | null }): {
+// Status 9 juga dipakai untuk error konfigurasi. ServerIDTrx membedakan transaksi yang
+// benar-benar diterima (terisi) dari request yang ditolak sebelum transaksi dibuat (null).
+export function mapDirectTopUpStatus(raw: {
+  Status: string;
+  Message: string | null;
+  ServerIDTrx: string | null;
+}): {
   status: IrsStatus;
   msg: string;
 } {
-  const status = DIRECT_TOPUP_STATUS_MAP[raw.Status as '0' | '1' | '2'] ?? 'gagal';
+  let status = DIRECT_TOPUP_STATUS_MAP[raw.Status as '0' | '1' | '2' | '9'] ?? 'gagal';
+
+  if (raw.Status === '9' && !raw.ServerIDTrx) {
+    status = 'gagal';
+  }
+
   return { status, msg: raw.Message ?? DEFAULT_MSG[status] };
 }
 
