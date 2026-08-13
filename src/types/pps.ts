@@ -116,8 +116,7 @@ export interface InquiryPlnData {
 export interface InquiryPlnResponse {
   status: string;
   message: string;
-  // PPS dapat menghilangkan `data` sepenuhnya saat inquiry gagal.
-  data?: InquiryPlnData;
+  data: InquiryPlnData;
 }
 
 export interface TopUpRecord {

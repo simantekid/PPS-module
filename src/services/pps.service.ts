@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { ppsClient } from '../lib/httpClient';
 import { signDirectTopUp, signGamelist, signInquiryPln, signSell, signStatusTrx } from '../lib/signature';
 import { config, ppsPaths } from '../config/env';
@@ -131,53 +130,13 @@ export async function inquiryPln(customerNumber: string): Promise<InquiryPlnResp
     signature: signInquiryPln(customerNumber),
   };
 
-  console.log(
-    '[INQUIRY PLN][MODULE -> PPS] REQUEST',
-    JSON.stringify(
-      {
-        method: 'POST',
-        url: `${config.pps.baseUrl}${ppsPaths.inquiryPln}`,
-        headers: { 'Content-Type': 'application/json' },
-        body: payload,
-      },
-      null,
-      2,
-    ),
-  );
+  console.log('[inquiryPln] request ->', ppsPaths.inquiryPln, payload);
 
-  try {
-    const response = await ppsClient.post<InquiryPlnResponse>(ppsPaths.inquiryPln, payload);
+  const { data } = await ppsClient.post<InquiryPlnResponse>(ppsPaths.inquiryPln, payload);
 
-    console.log(
-      '[INQUIRY PLN][PPS -> MODULE] RESPONSE',
-      JSON.stringify(
-        {
-          httpStatus: response.status,
-          headers: response.headers,
-          body: response.data,
-        },
-        null,
-        2,
-      ),
-    );
+  console.log('[inquiryPln] response ->', JSON.stringify(data, null, 2));
 
-    return response.data;
-  } catch (err) {
-    const errorDetail = axios.isAxiosError(err)
-      ? {
-          message: err.message,
-          code: err.code ?? null,
-          httpStatus: err.response?.status ?? null,
-          headers: err.response?.headers ?? null,
-          body: err.response?.data ?? null,
-        }
-      : {
-          message: err instanceof Error ? err.message : String(err),
-        };
-
-    console.error('[INQUIRY PLN][PPS -> MODULE] ERROR', JSON.stringify(errorDetail, null, 2));
-    throw err;
-  }
+  return data;
 }
 
 export async function getStatusTrx(notrx: string): Promise<StatusTrxResponse> {
