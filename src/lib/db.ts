@@ -1,7 +1,7 @@
 import path from 'path';
-import { DatabaseSync } from 'node:sqlite';
+import Database from 'better-sqlite3';
 
-export const db = new DatabaseSync(path.join(process.cwd(), 'pps.db'));
+export const db = new Database(path.join(process.cwd(), 'pps.db'));
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS topups (
